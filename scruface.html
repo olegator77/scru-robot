@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Wiieva robot</title>
+    <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'>
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/10.2.0/css/bootstrap-slider.min.css'>
+
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <h3>
+                    Wiieva robot
+                </h3>
+                <div class="btn-group" role="group">
+                    <button class="btn btn-secondary" type="button" onclick="setMode('auto')">
+                        Auto
+                    </button>
+                    <button class="btn btn-secondary" type="button" onclick="setMode('manual')">
+                        Manual
+                    </button>
+                </div>
+                <div class="row">
+                    <br />
+                </div>
+                <div class="row">
+                    <br />
+                </div>
+                <div align="center">
+                    <table class="row">
+                        <tr>
+                            <td class="col-md-4" align="center">
+
+                                <button type="button" class="btn btn-success btn-block" ontouchstart="startMove('left',true)"
+                                    ontouchend="stopMove()" onmousedown="startMove('left',false)">
+                                    ◀
+                                </button>
+                            </td>
+                            <td class="col-md-4" align="center">
+                                <button type="button" class="btn btn-success btn-block" ontouchstart="startMove('forward',true)"
+                                    ontouchend="stopMove()" onmousedown="startMove('forward',false)">
+                                    ▲
+                                </button>
+                                <br />
+                                <button type="button" class="btn btn-success btn-block" ontouchstart="startMove('back',true)"
+                                    ontouchend="stopMove()" onmousedown="startMove('back',false)">
+                                    ▼
+                                </button>
+                            </td>
+                            <td class="col-md-4" align="right">
+                                <button type="button" class="btn btn-success btn-block" ontouchstart="startMove('right',true)"
+                                    ontouchend="stopMove()" onmousedown="startMove('right',false)">
+                                    ▶
+                                </button>
+                            </td>
+                            <td class="col-md-4" align="right">
+                                <br>
+                            </td>
+                            <td class="col-md-4" align="center">
+                                Speed<br><br>
+                                <input id="speedInput" type="text" data-provide="slider" data-slider-min="50"
+                                    data-slider-max="200" data-slider-step="1" data-slider-value="100"
+                                    data-slider-tooltip="hide" data-slider-orientation="vertical" />
+                            </td>
+
+                        </tr>
+                    </table>
+                </div>
+                <div class="row">
+                    <br>
+                </div>
+                <div class="row" align="center">
+                    Turn head<br /><br />
+                    <input id="servoAngleInput" data-slider-tooltip="hide" data-provide="slider" type="text"
+                        data-slider-min="-85" data-slider-max="85" data-slider-step="10" />
+                </div>
+                <div class="row">
+                    <br>
+                </div>
+                <div class="row" align="center">
+                    <button type="button" class="btn btn-primary" onclick="startMusic()">
+                        Say
+                    </button> </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
+    <script src='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js'></script>
+    <script src=' https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/10.2.0/bootstrap-slider.min.js'></script>
+
+    <script>
+        var baseUrl = "http://192.168.1.115/";
+        var moveActive = false;
+        var moveTimerId;
+        var hasTouch;
+        window.addEventListener("mouseup", function (e) {
+            if (moveActive) {
+                stopMove();
+            }
+        }, false);
+        $("#servoAngleInput").on("change", function (changeEvt) {
+            turnServo(changeEvt.value.newValue);
+        });
+
+        function setMode(mode) {
+            $.ajax({
+                url: baseUrl + "mode",
+                data: "mode=" + mode,
+            });
+        }
+
+        function setMove(dir) {
+            speed = $("#speedInput").slider('getValue');
+            $.ajax({
+                url: baseUrl + "move",
+                data: "dir=" + dir + "&duration=2000&speed=" + speed
+            });
+        }
+
+        function startMove(dir, touch) {
+            if (touch) {
+                hasTouch = true
+            }
+            if (hasTouch && !touch) {
+                return
+            }
+            moveActive = true
+            setMove(dir);
+            moveTimerId = setInterval(function () {
+                setMove(dir);
+            }, 1000);
+        }
+
+        function stopMove() {
+            moveActive = false;
+            clearInterval(moveTimerId);
+            setMove("stop");
+        }
+        function turnServo(angle) {
+            $.ajax({
+                url: baseUrl + "servo",
+                data: "angle=" + angle
+            });
+        }
+        function startMusic() {
+            $.ajax({
+                url: baseUrl + "music"
+            });
+        }
+
+    </script>
+</body>
+
+</html>
